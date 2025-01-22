@@ -1,0 +1,33 @@
+# render.yaml
+services:
+  - type: web
+    name: nexus-backend
+    env: golang
+    region: oregon
+    build:
+      os: ubuntu
+      buildCommand: |
+        go mod download
+        go build -o nexus
+    startCommand: ./nexus
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: DEEPSEEK_API_KEY
+        sync: false
+    healthCheckPath: /health
+    autoDeploy: true
+    scaling:
+      plan: free
+
+  - type: static_site
+    name: nexus-frontend
+    buildCommand: |
+      echo "Building frontend assets..."
+      cp -r frontend/* dist/
+    staticAssets:
+      - path: /
+        destination: dist
+    envVars:
+      - key: VITE_API_ENDPOINT
+        value: https://nexus-backend.onrender.com

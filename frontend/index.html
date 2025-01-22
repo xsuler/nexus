@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Nexus Toolkit</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #7B61FF;
+            --neon-effect: 0 0 15px #7B61FF;
+            --background: linear-gradient(45deg, #1A1A1A 0%, #2D2D2D 100%);
+            --card-bg: rgba(30, 30, 30, 0.9);
+            --text-primary: #E0E0E0;
+            --error-color: #FF4A4A;
+            --success-color: #00FF88;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            padding: 2rem;
+            background: var(--background);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .cyberpunk-heading {
+            text-align: center;
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 2rem;
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .cyberpunk-heading::after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 3px;
+            background: var(--primary-color);
+            box-shadow: var(--neon-effect);
+        }
+
+        .config-section {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(123, 97, 255, 0.3);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--neon-effect);
+            max-width: 800px;
+            margin: 2rem auto;
+        }
+
+        textarea {
+            width: 90%; /* 调整宽度为90%父容器宽度 */
+            display: block; /* 确保块级元素特性 */
+            margin: 1rem auto; /* 水平居中 */
+            height: 150px;
+            padding: 1rem;
+            background: rgba(40, 40, 40, 0.8);
+            border: 2px solid #7B61FF;
+            border-radius: 6px;
+            color: #FFF;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            box-shadow: 0 0 10px var(--primary-color);
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            box-shadow: var(--neon-effect);
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: var(--error-color);
+            color: white;
+        }
+
+        .task-container {
+            display: grid;
+            gap: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .task-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 2rem;
+            border: 1px solid rgba(123, 97, 255, 0.3);
+            position: relative;
+        }
+
+        .task-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 8px;
+            pointer-events: none;
+            box-shadow: var(--neon-effect);
+            opacity: 0.3;
+        }
+
+        .processing {
+            padding: 1rem;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid var(--success-color);
+            border-radius: 6px;
+            color: var(--success-color);
+            text-align: center;
+        }
+
+        .error {
+            padding: 1rem;
+            background: rgba(255, 74, 74, 0.1);
+            border: 1px solid var(--error-color);
+            border-radius: 6px;
+            color: var(--error-color);
+            margin: 1rem 0;
+        }
+
+        .loading {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+            margin-left: 0.5rem;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        .cyber-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(123, 97, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(123, 97, 255, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .input-container {
+            border: 2px solid var(--primary-color);
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .output-container {
+            margin-top: 1rem;
+            padding: 1rem;
+            border: 2px solid var(--primary-color);
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="cyber-grid"></div>
+    <h1 class="cyberpunk-heading">NEXUS TOOLKIT</h1>
+
+    <div class="config-section">
+        <h2>app描述</h2>
+        <textarea id="textInput" placeholder="请输入自然语言的任务描述，例如：创建一个实时显示加密货币价格的仪表板"></textarea>
+        <div style="text-align: center;">
+            <button class="btn btn-primary" onclick="generateConfig()" id="generateBtn">
+                <span class="btn-text">生成应用</span>
+                <span class="loading" style="display:none;"><i class="fas fa-spinner"></i></span>
+            </button>
+        </div>
+    </div>
+
+    <div class="task-container" id="taskContainer"></div>
+
+<script>
+const appState = {
+    task: null,
+    execution: null,
+    dependencies: new Map(),
+    input: null
+};
+
+async function generateConfig() {
+    const generateBtn = document.getElementById('generateBtn');
+    const btnText = generateBtn.querySelector('.btn-text');
+    const loading = generateBtn.querySelector('.loading');
+    
+    try {
+        btnText.textContent = '生成中...';
+        loading.style.display = 'inline-block';
+        generateBtn.disabled = true;
+
+        const userInput = document.getElementById('textInput').value;
+        if (!userInput.trim()) {
+            throw new Error('请输入任务描述');
+        }
+
+        const response = await fetch('http://localhost:8080/api/generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                prompt: userInput
+            })
+        });
+
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `请求失败: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        const configJson = extractJson(data.choices[0].message.content);
+        renderTask(configJson);
+    } catch(error) {
+        showError(`生成失败: ${error.message}`);
+    } finally {
+        btnText.textContent = '生成应用';
+        loading.style.display = 'none';
+        generateBtn.disabled = false;
+    }
+}
+
+function extractJson(content) {
+    const jsonStart = content.indexOf('{');
+    const jsonEnd = content.lastIndexOf('}') + 1;
+    if (jsonStart === -1 || jsonEnd === 0) {
+        throw new Error('未找到有效的JSON配置');
+    }
+    const jsonString = content.slice(jsonStart, jsonEnd);
+    try {
+        return JSON.parse(jsonString);
+    } catch(e) {
+        throw new Error('JSON解析失败: ' + e.message);
+    }
+}
+
+function renderTask(config) {
+    try {
+        validateTaskConfig(config);
+        appState.task = config;
+        
+        const container = document.getElementById('taskContainer');
+        container.innerHTML = `
+            <div class="task-card">
+                <h3>${config.name}</h3>
+                ${config.input ? `<div class="input-container" id="taskInput"></div>` : ''}
+                <div class="task-controls" style="margin: 1rem 0;">
+                    <button class="btn btn-primary" onclick="executeTask()">执行</button>
+                    <button class="btn btn-danger" onclick="abortTask()">终止</button>
+                </div>
+                <div class="output-container" id="taskOutput"></div>
+            </div>
+        `;
+
+        if (config.input) {
+            ComponentRenderer.renderInput(
+                document.getElementById('taskInput'),
+                config.input
+            );
+        }
+    } catch (error) {
+        showError(`配置解析错误: ${error.message}`);
+    }
+}
+
+function validateTaskConfig(task) {
+    const requiredFields = ['name', 'action'];
+    requiredFields.forEach(field => {
+        if (!task[field]) throw new Error(`缺少必要字段: ${field}`);
+    });
+
+    try {
+        if (typeof eval(task.action) !== 'function') {
+            throw new Error('action 必须是有效的函数');
+        }
+    } catch(e) {
+        throw new Error('action 代码解析失败: ' + e.message);
+    }
+}
+
+const ComponentRenderer = {
+    renderInput(container, config) {
+        try {
+            container.innerHTML = '';
+            if (!config?.render) return;
+
+            const update = (value) => appState.input = value;
+            const renderFn = eval(config.render);
+            renderFn(container, update);
+            this.autoBindInputs(container, update);
+
+        } catch(e) {
+            container.innerHTML = `<div class="error">输入渲染失败: ${e.message}</div>`;
+        }
+    },
+
+    autoBindInputs(container, update) {
+        const elements = container.querySelectorAll('input, select, textarea');
+        elements.forEach(el => {
+            const eventType = el.tagName === 'INPUT' && el.type === 'checkbox' ? 'change' : 'input';
+            el.addEventListener(eventType, () => {
+                update(this.getValueFromElement(el));
+            });
+            update(this.getValueFromElement(el));
+        });
+    },
+
+    renderOutput(container, data, config) {
+        try {
+            container.innerHTML = '';
+            if (!config?.render) {
+                const pre = document.createElement('pre');
+                pre.textContent = JSON.stringify(data, null, 2);
+                container.appendChild(pre);
+                return;
+            }
+
+            const renderFn = eval(config.render);
+            renderFn(container, data);
+
+        } catch(e) {
+            container.innerHTML = `<div class="error">输出渲染失败: ${e.message}</div>`;
+        }
+    },
+
+    getValueFromElement(el) {
+        if (el.type === 'checkbox') return el.checked;
+        if (el.type === 'file') return el.files[0];
+        return el.value;
+    }
+};
+
+async function executeTask() {
+    const task = appState.task;
+    if (!task) return;
+
+    const outputContainer = document.getElementById('taskOutput');
+    const controller = new AbortController();
+    
+    appState.execution = controller;
+    outputContainer.innerHTML = '<div class="processing"><i class="fas fa-sync-alt fa-spin"></i> 执行中...</div>';
+
+    try {
+        // 加载依赖
+        if (task.dependencies) {
+            await Promise.all(task.dependencies.map(url => {
+                if (!appState.dependencies.has(url)) {
+                    return new Promise((resolve, reject) => {
+                        const script = document.createElement('script');
+                        script.src = url;
+                        script.onload = () => {
+                            appState.dependencies.set(url, true);
+                            resolve();
+                        };
+                        script.onerror = (err) => reject(new Error(`加载依赖失败: ${url}`));
+                        document.head.appendChild(script);
+                    });
+                }
+                return Promise.resolve();
+            }));
+        }
+
+        let latestData = null;
+        const update = (data) => {
+            latestData = data;
+            ComponentRenderer.renderOutput(outputContainer, data, task.output);
+        };
+
+        const actionFn = eval(task.action);
+        const result = actionFn(
+            appState.input,
+            update,
+            controller.signal
+        );
+
+        // 处理同步/异步结果
+        if (result instanceof Promise) {
+            await result;
+        }
+
+        if (latestData === null && result !== undefined) {
+            ComponentRenderer.renderOutput(outputContainer, result, task.output);
+        }
+
+    } catch (error) {
+        ComponentRenderer.renderOutput(outputContainer, 
+            { error: error.message },
+            { render: "(c, d) => c.innerHTML = `<div class='error'>${d.error}</div>`" }
+        );
+    } finally {
+        appState.execution = null;
+    }
+}
+
+function abortTask() {
+    if (appState.execution) {
+        appState.execution.abort();
+        appState.execution = null;
+        const outputContainer = document.getElementById('taskOutput');
+        outputContainer.innerHTML = '<div class="error">任务已终止</div>';
+    }
+}
+
+function showError(message) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error';
+    errorDiv.innerHTML = `
+        <i class="fas fa-exclamation-triangle"></i>
+        <div class="error-content">
+            <h4>SYSTEM ALERT</h4>
+            <p>${message}</p>
+        </div>
+    `;
+    
+    const container = document.getElementById('taskContainer');
+    container.prepend(errorDiv);
+    
+    setTimeout(() => {
+        errorDiv.style.opacity = '0';
+        setTimeout(() => errorDiv.remove(), 500);
+    }, 5000);
+}
+
+// 初始化输入验证
+document.getElementById('textInput').addEventListener('input', function(e) {
+    if (e.target.value.trim().length > 500) {
+        showError('描述内容过长（最大500字符）');
+    }
+});
+</script>
+</body>
+</html>
