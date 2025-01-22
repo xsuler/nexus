@@ -4,7 +4,7 @@ services:
     name: nexus-backend
     runtime: golang
     region: oregon
-    build:
+    buildCommand:
       os: ubuntu
       buildCommand: |
         go mod download
@@ -17,8 +17,7 @@ services:
         sync: false
     healthCheckPath: /health
     autoDeploy: true
-    scaling:
-      plan: free
+    plan: free
 
   - type: web
     runtime: static
