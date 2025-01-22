@@ -13,6 +13,7 @@
             --text-primary: #E0E0E0;
             --error-color: #FF4A4A;
             --success-color: #00FF88;
+            --test-content: "This is a \A test"; /* 转义测试 */
         }
 
         body {
@@ -60,9 +61,9 @@
         }
 
         textarea {
-            width: 90%; /* 调整宽度为90%父容器宽度 */
-            display: block; /* 确保块级元素特性 */
-            margin: 1rem auto; /* 水平居中 */
+            width: 90%;
+            display: block;
+            margin: 1rem auto;
             height: 150px;
             padding: 1rem;
             background: rgba(40, 40, 40, 0.8);
@@ -243,13 +244,17 @@ async function generateConfig() {
             })
         });
 
-
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.error || `请求失败: ${response.status}`);
         }
         
         const data = await response.json();
+        // 新增响应验证
+        if (!data?.choices?.[0]?.message?.content) {
+            throw new Error('API返回格式异常');
+        }
+
         const configJson = extractJson(data.choices[0].message.content);
         renderTask(configJson);
     } catch(error) {
@@ -262,15 +267,12 @@ async function generateConfig() {
 }
 
 function extractJson(content) {
-    const jsonStart = content.indexOf('{');
-    const jsonEnd = content.lastIndexOf('}') + 1;
-    if (jsonStart === -1 || jsonEnd === 0) {
-        throw new Error('未找到有效的JSON配置');
-    }
-    const jsonString = content.slice(jsonStart, jsonEnd);
+    const jsonString = content
+
     try {
         return JSON.parse(jsonString);
     } catch(e) {
+        console.error('解析失败的JSON内容:', jsonString);
         throw new Error('JSON解析失败: ' + e.message);
     }
 }
@@ -382,7 +384,6 @@ async function executeTask() {
     outputContainer.innerHTML = '<div class="processing"><i class="fas fa-sync-alt fa-spin"></i> 执行中...</div>';
 
     try {
-        // 加载依赖
         if (task.dependencies) {
             await Promise.all(task.dependencies.map(url => {
                 if (!appState.dependencies.has(url)) {
@@ -414,7 +415,6 @@ async function executeTask() {
             controller.signal
         );
 
-        // 处理同步/异步结果
         if (result instanceof Promise) {
             await result;
         }
@@ -462,7 +462,6 @@ function showError(message) {
     }, 5000);
 }
 
-// 初始化输入验证
 document.getElementById('textInput').addEventListener('input', function(e) {
     if (e.target.value.trim().length > 500) {
         showError('描述内容过长（最大500字符）');
