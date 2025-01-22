@@ -2,7 +2,7 @@
 services:
   - type: web
     name: nexus-backend
-    runtime: golang
+    runtime: go
     region: oregon
     buildCommand: |
       go mod download
