@@ -2,7 +2,7 @@
 services:
   - type: web
     name: nexus-backend
-    env: golang
+    runtime: golang
     region: oregon
     build:
       os: ubuntu
@@ -20,14 +20,7 @@ services:
     scaling:
       plan: free
 
-  - type: static_site
+  - type: web
+    runtime: static
+    staticPublishPath: frontend    
     name: nexus-frontend
-    buildCommand: |
-      echo "Building frontend assets..."
-      cp -r frontend/* dist/
-    staticAssets:
-      - path: /
-        destination: dist
-    envVars:
-      - key: VITE_API_ENDPOINT
-        value: https://nexus-backend.onrender.com
