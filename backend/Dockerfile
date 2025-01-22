@@ -1,6 +1,7 @@
 FROM golang:1.23-alpine AS builder
 WORKDIR /app
 COPY backend/ .
+COPY frontend/ ./frontend
 RUN go mod tidy
 RUN go build -o quantum-toolkit
 

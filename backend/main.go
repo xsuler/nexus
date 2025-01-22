@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -141,16 +140,6 @@ func handleGeneration(c *gin.Context) {
 func main() {
 	router := gin.Default()
 
-	// 配置CORS（生产环境应限制来源）
-	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"},
-		AllowMethods:     []string{"POST", "OPTIONS"},
-		AllowHeaders:     []string{"Content-Type"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		MaxAge:           12 * 3600, // 12小时
-	}))
-
 	// 健康检查端点
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
@@ -158,6 +147,7 @@ func main() {
 
 	// 代理端点
 	router.POST("/api/generate", handleGeneration)
+	router.Static("/", "./frontend/")
 
 	port := os.Getenv("PORT")
 	if port == "" {
