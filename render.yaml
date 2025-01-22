@@ -4,11 +4,9 @@ services:
     name: nexus-backend
     runtime: golang
     region: oregon
-    buildCommand:
-      os: ubuntu
-      buildCommand: |
-        go mod download
-        go build -o nexus
+    buildCommand: |
+      go mod download
+      go build -o nexus
     startCommand: ./nexus
     envVars:
       - key: PORT
