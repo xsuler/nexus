@@ -2,18 +2,17 @@
 services:
   - type: web
     name: nexus-backend
-    runtime: go
+    runtime: docker
     region: oregon
     buildCommand: |
       go mod download
       go build -o nexus
-    startCommand: ./nexus
+    dockerfilePath: backend/Dockerfile
     envVars:
       - key: PORT
         value: 8080
       - key: DEEPSEEK_API_KEY
         sync: false
-    healthCheckPath: /health
     autoDeploy: true
     plan: free
 
