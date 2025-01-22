@@ -1,7 +1,7 @@
 FROM golang:1.20-alpine AS builder
 WORKDIR /app
 COPY backend/ .
-RUN go mod download
+RUN go mod tidy
 RUN go build -o quantum-toolkit
 
 
