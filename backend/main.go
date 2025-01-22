@@ -140,11 +140,6 @@ func handleGeneration(c *gin.Context) {
 func main() {
 	router := gin.Default()
 
-	// 健康检查端点
-	router.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "ok"})
-	})
-
 	// 代理端点
 	router.POST("/api/generate", handleGeneration)
 	router.Static("/", "./frontend/")

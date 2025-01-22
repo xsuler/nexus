@@ -15,8 +15,3 @@ services:
         sync: false
     autoDeploy: true
     plan: free
-
-  - type: web
-    runtime: static
-    staticPublishPath: frontend    
-    name: nexus-frontend
