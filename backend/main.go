@@ -67,8 +67,7 @@ const (
 7. js依赖都用最新版本
 8. 尽可能使用js完成任务，不要引入dependencies
 9. 某些js依赖是禁止的
-**注意，所有的代码除了依赖js dependencies外，不能访问任何外部数据或者api，如果需要访问，请提供input让用户输入对应的url或者本地文件或者数据textarea**
-**不要生成mock的数据，所有需要mock数据的地方，你需要在input的render里面增加一个输入框让用户输入**
+10. 注意js输出中""需要被正确转义
 
 以下是禁止使用的js依赖：
 1. marked.min.js
