@@ -164,11 +164,26 @@ async function fetchComponentConfig(prompt) {
         }
 
         const data = await response.json();
-        return data;
+        return validateConfig(data);
     } catch (error) {
         throw new Error(`API请求失败: ${error.message}`);
     }
+}
 
+function validateConfig(config) {
+    const requiredFields = ['deps', 'code'];
+    requiredFields.forEach(field => {
+        if (!config[field]) throw new Error('无效的组件配置');
+    });
+
+    try {
+        new Function('container', config.code);
+    } catch (e) {
+        throw new Error('组件代码无效');
+    }
+
+    return config;
+}
 
 async function renderComponent(config) {
     // 清理旧组件
@@ -187,7 +202,7 @@ async function renderComponent(config) {
     // 执行代码
     try {
         const mountNode = document.getElementById('componentMount');
-        const component = eval(config.code)(mountNode);
+        const component = new Function('container', config.code)(mountNode);
         state.currentComponent = component;
     } catch (error) {
         container.innerHTML = `<div class="error">组件初始化失败: ${error.message}</div>`;
