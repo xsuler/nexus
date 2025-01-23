@@ -175,7 +175,7 @@ function validateConfig(config) {
     requiredFields.forEach(field => {
         if (!config[field]) throw new Error('无效的组件配置');
     });
-
+    console.log(config.code)
     try {
         new Function('container', config.code);
     } catch (e) {
