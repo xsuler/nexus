@@ -90,6 +90,8 @@ so remember, i will call your code in following way:
 func = new Funciton("container", reply.code)
 so you should no contain any declaration of container in your response code
 
+同时你要输出的是纯js代码，而不是nodejs代码
+
 #### 组件设计最佳实践
 
 - **模块化设计**：每个组件应设计为独立的模块，具备单一职责，便于维护和复用。
