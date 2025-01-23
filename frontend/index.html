@@ -465,7 +465,6 @@ const ComponentRenderer = {
                 src="/proxy?url=${encodeURIComponent(data.url)}"
                 loading="lazy"
                 allow="accelerometer; camera; geolocation; microphone; payment; usb"
-                referrerpolicy="strict-origin-when-cross-origin"
             ></iframe>
         `;
 
@@ -547,15 +546,7 @@ async function executeTask() {
 }
 
 function validateIframeUrl(url) {
-    try {
-        const parsed = new URL(url);
-        const allowed = ['coinmarketcap.com', 'coingecko.com'];
-        if (!allowed.some(d => parsed.hostname.endsWith(d))) {
-            throw new Error('不允许的域名');
-        }
-    } catch {
-        throw new Error('无效的URL格式');
-    }
+
 }
 
 function abortTask() {
