@@ -13,7 +13,7 @@
             --text-primary: #E0E0E0;
             --error-color: #FF4A4A;
             --success-color: #00FF88;
-            --test-content: "This is a \A test"; /* 转义测试 */
+            --loading-color: #7B61FF;
         }
 
         body {
@@ -153,14 +153,9 @@
             margin: 1rem 0;
         }
 
-        .loading {
-            display: inline-block;
+        .loading-spinner {
             animation: spin 1s linear infinite;
             margin-left: 0.5rem;
-        }
-
-        @keyframes spin {
-            100% { transform: rotate(360deg); }
         }
 
         .cyber-grid {
@@ -191,6 +186,70 @@
             border: 2px solid var(--primary-color);
             border-radius: 6px;
             background: rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .iframe-container {
+            position: relative;
+            min-height: 500px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .error-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 2rem;
+            background: rgba(30, 30, 30, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .error-overlay ul {
+            text-align: left;
+            margin: 1rem 0;
+        }
+
+        .external-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            border-bottom: 1px dashed;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        .toggle-output {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--card-bg);
+            border: 1px solid var(--primary-color);
+            border-radius: 4px;
+            padding: 4px 8px;
+            cursor: pointer;
+            z-index: 20;
         }
     </style>
 </head>
@@ -199,12 +258,12 @@
     <h1 class="cyberpunk-heading">NEXUS TOOLKIT</h1>
 
     <div class="config-section">
-        <h2>app描述</h2>
-        <textarea id="textInput" placeholder="请输入自然语言的任务描述，例如：创建一个实时显示加密货币价格的仪表板"></textarea>
+        <h2>应用描述</h2>
+        <textarea id="textInput" placeholder="示例：创建一个显示实时加密货币价格的仪表板"></textarea>
         <div style="text-align: center;">
             <button class="btn btn-primary" onclick="generateConfig()" id="generateBtn">
                 <span class="btn-text">生成应用</span>
-                <span class="loading" style="display:none;"><i class="fas fa-spinner"></i></span>
+                <span class="loading-spinner" style="display:none;"><i class="fas fa-spinner"></i></span>
             </button>
         </div>
     </div>
@@ -216,32 +275,27 @@ const appState = {
     task: null,
     execution: null,
     dependencies: new Map(),
-    input: null
+    input: null,
+    iframeStates: new Map()
 };
 
 async function generateConfig() {
     const generateBtn = document.getElementById('generateBtn');
     const btnText = generateBtn.querySelector('.btn-text');
-    const loading = generateBtn.querySelector('.loading');
+    const spinner = generateBtn.querySelector('.loading-spinner');
     
     try {
         btnText.textContent = '生成中...';
-        loading.style.display = 'inline-block';
+        spinner.style.display = 'inline-block';
         generateBtn.disabled = true;
 
         const userInput = document.getElementById('textInput').value;
-        if (!userInput.trim()) {
-            throw new Error('请输入任务描述');
-        }
+        if (!userInput.trim()) throw new Error('请输入任务描述');
 
         const response = await fetch('/api/generate', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                prompt: userInput
-            })
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({prompt: userInput})
         });
 
         if (!response.ok) {
@@ -250,24 +304,23 @@ async function generateConfig() {
         }
         
         const data = await response.json();
-        // 新增响应验证
-        if (!data?.choices?.[0]?.message?.content) {
-            throw new Error('API返回格式异常');
-        }
-
+        if (!data?.choices?.[0]?.message?.content) throw new Error('API返回格式异常');
+        
         const configJson = extractJson(data.choices[0].message.content);
         renderTask(configJson);
     } catch(error) {
         showError(`生成失败: ${error.message}`);
     } finally {
         btnText.textContent = '生成应用';
-        loading.style.display = 'none';
+        spinner.style.display = 'none';
         generateBtn.disabled = false;
     }
 }
 
 function extractJson(content) {
-    const jsonString = content
+    const jsonStart = content.indexOf('{');
+    const jsonEnd = content.lastIndexOf('}') + 1;
+    const jsonString = content.slice(jsonStart, jsonEnd);
 
     try {
         return JSON.parse(jsonString);
@@ -319,6 +372,15 @@ function validateTaskConfig(task) {
     } catch(e) {
         throw new Error('action 代码解析失败: ' + e.message);
     }
+
+    // 安全验证
+    if (task.action.includes('iframe')) {
+        const allowedHosts = ['coinmarketcap.com', 'coingecko.com'];
+        const urlMatch = task.action.match(/url:\s*["'](https?:\/\/[^"']+)["']/);
+        if (urlMatch && !allowedHosts.some(h => urlMatch[1].includes(h))) {
+            throw new Error('不允许的iframe域名');
+        }
+    }
 }
 
 const ComponentRenderer = {
@@ -348,28 +410,82 @@ const ComponentRenderer = {
         });
     },
 
-    renderOutput(container, data, config) {
-        try {
-            container.innerHTML = '';
-            if (!config?.render) {
-                const pre = document.createElement('pre');
-                pre.textContent = JSON.stringify(data, null, 2);
-                container.appendChild(pre);
-                return;
-            }
-
-            const renderFn = eval(config.render);
-            renderFn(container, data);
-
-        } catch(e) {
-            container.innerHTML = `<div class="error">输出渲染失败: ${e.message}</div>`;
-        }
-    },
-
     getValueFromElement(el) {
         if (el.type === 'checkbox') return el.checked;
         if (el.type === 'file') return el.files[0];
         return el.value;
+    },
+
+    renderOutput(container, data, config) {
+        try {
+            container.innerHTML = '';
+            
+            if (config?.render) {
+                const renderFn = eval(config.render);
+                return renderFn(container, data);
+            }
+
+            if (data?.type === 'iframe') {
+                return this.renderIframe(container, data);
+            }
+
+            const pre = document.createElement('pre');
+            pre.textContent = JSON.stringify(data, null, 2);
+            container.appendChild(pre);
+        } catch(e) {
+            container.innerHTML = `<div class="error">渲染失败: ${e.message}</div>`;
+        }
+    },
+
+    renderIframe(container, data) {
+        const stateKey = data.url;
+        const existingState = appState.iframeStates.get(stateKey);
+        
+        const wrapper = document.createElement('div');
+        wrapper.className = 'iframe-container';
+        wrapper.innerHTML = `
+            ${existingState ? '' : `
+            <div class="loading-overlay">
+                <i class="fas fa-spinner loading-spinner"></i>
+            </div>
+            <div class="error-overlay" style="display: none;">
+                <h4>内容加载失败</h4>
+                <p>可能原因：</p>
+                <ul>
+                    <li>目标网站禁止嵌入</li>
+                    <li>网络连接问题</li>
+                </ul>
+                <button class="btn btn-primary" onclick="window.open('${data.url}', '_blank')">
+                    在新窗口打开
+                </button>
+            </div>
+            `}
+            <iframe 
+                src="/proxy?url=${encodeURIComponent(data.url)}"
+                loading="lazy"
+                allow="accelerometer; camera; geolocation; microphone; payment; usb"
+                referrerpolicy="strict-origin-when-cross-origin"
+            ></iframe>
+        `;
+
+        const iframe = wrapper.querySelector('iframe');
+        const loading = wrapper.querySelector('.loading-overlay');
+        const error = wrapper.querySelector('.error-overlay');
+
+        if (!existingState) {
+            iframe.onload = () => {
+                loading.style.display = 'none';
+                error.style.display = 'none';
+                appState.iframeStates.set(stateKey, true);
+            };
+
+            iframe.onerror = () => {
+                loading.style.display = 'none';
+                error.style.display = 'flex';
+            };
+        }
+
+        container.appendChild(wrapper);
     }
 };
 
@@ -404,21 +520,17 @@ async function executeTask() {
 
         let latestData = null;
         const update = (data) => {
+            if (typeof data === 'object' && data?.type === 'iframe') {
+                validateIframeUrl(data.url);
+            }
             latestData = data;
             ComponentRenderer.renderOutput(outputContainer, data, task.output);
         };
 
         const actionFn = eval(task.action);
-        const result = actionFn(
-            appState.input,
-            update,
-            controller.signal
-        );
+        const result = actionFn(appState.input, update, controller.signal);
 
-        if (result instanceof Promise) {
-            await result;
-        }
-
+        if (result instanceof Promise) await result;
         if (latestData === null && result !== undefined) {
             ComponentRenderer.renderOutput(outputContainer, result, task.output);
         }
@@ -430,6 +542,18 @@ async function executeTask() {
         );
     } finally {
         appState.execution = null;
+    }
+}
+
+function validateIframeUrl(url) {
+    try {
+        const parsed = new URL(url);
+        const allowed = ['coinmarketcap.com', 'coingecko.com'];
+        if (!allowed.some(d => parsed.hostname.endsWith(d))) {
+            throw new Error('不允许的域名');
+        }
+    } catch {
+        throw new Error('无效的URL格式');
     }
 }
 
@@ -448,8 +572,11 @@ function showError(message) {
     errorDiv.innerHTML = `
         <i class="fas fa-exclamation-triangle"></i>
         <div class="error-content">
-            <h4>SYSTEM ALERT</h4>
+            <h4>系统告警</h4>
             <p>${message}</p>
+            <button class="btn btn-primary" onclick="this.parentElement.parentElement.remove()">
+                确认
+            </button>
         </div>
     `;
     
@@ -466,6 +593,11 @@ document.getElementById('textInput').addEventListener('input', function(e) {
     if (e.target.value.trim().length > 500) {
         showError('描述内容过长（最大500字符）');
     }
+});
+
+// 初始化示例
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('textInput').value = '创建一个加密货币实时价格看板';
 });
 </script>
 </body>
