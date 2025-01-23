@@ -29,7 +29,7 @@ const (
 1. **代码格式**：
     - JSON 字符串中的代码段必须保持单行格式，避免使用换行符。
     - 禁止使用双引号，仅允许使用单引号，以确保 JSON 结构的正确性。
-    - 在 render 和 action 的代码中，所有逻辑必须用分号隔开，不得包含任何控制字符。
+    - 在 code 的代码中，所有逻辑必须用分号隔开，不得包含任何控制字符。
 
 2. **依赖管理**：
     - 优先选择来自 jsDelivr 的稳定依赖库，确保组件的可靠性和加载速度。
@@ -67,10 +67,8 @@ const (
     - 每个组件的 JSON 配置应包含以下字段：
         - name：组件名称。
         - expand_description：扩展后的详细描述。
-        - dependencies：所需的外部依赖库，优先使用 jsDelivr 链接。
-        - input：输入处理逻辑，若不需要用户输入则忽略此字段。
-        - output：输出渲染逻辑，详细描述如何展示数据。
-        - action：组件的行为逻辑，处理数据输入与状态更新。
+        - deps：所需的外部依赖库，优先使用 jsDelivr 链接。
+        - code：输出渲染逻辑。
 
 3. **应用动态更新手段**：
     - 对于能够动态变化的数据，应用实时更新机制。
@@ -82,21 +80,9 @@ const (
 
 
 {
-    "name": "实时时钟",
-    "expand_description": "该组件为用户提供一个实时显示当前时间的功能，采用数字时钟形式，支持多种时间格式（如12小时制和24小时制），并可自定义字体样式和颜色。通过高效的定时器机制，确保时间的精确性和更新的流畅性，适用于各种需要显示当前时间的应用场景，如仪表盘、个人助手等。",
-    "dependencies": [
-            "https://cdn.jsdelivr.net/npm/qrcode-svg@1.1.0/lib/qrcode.min.js"
-    ],
-    "input": {
-        "render": "(container, update) => { const input = document.createElement('input'); input.className = 'input-field'; input.placeholder = '输入内容'; container.appendChild(input); input.addEventListener('input', (e) => update(e.target.value)); }"
-    },
-
-    "output": {
-        "render": "(container, data) => { container.innerHTML = <div class='clock'>${data}</div>; }"
-    },
-    "action": "(input, update) => { setInterval(() => update(new Date().toLocaleTimeString()), 1000); }"
+  "deps": ["https://cdn.jsdelivr.net/npm/qrcode@1.5.0/build/qrcode.min.js"],
+  "code": "const e=document.createElement('input');e.type='text';e.placeholder='输入二维码内容';e.style='width:100%;padding:12px;margin-bottom:20px;border:2px solid #7B61FF;border-radius:8px;background:rgba(0,0,0,0.3);color:white;';const t=document.createElement('canvas');t.style.display='block';t.style.margin='0 auto';t.style.boxShadow='0 4px 12px rgba(0,0,0,0.2)';container.appendChild(e);container.appendChild(t);const n=function(o){QRCode.toCanvas(t,o,{width:256,margin:2,color:{dark:'#7B61FF',light:'#1A1A24'}},function(e){e&&(t.getContext('2d').clearRect(0,0,t.width,t.height),console.error('生成失败:',e))})};n('https://github.com');e.addEventListener('input',function(e){const o=e.target.value.trim();o?n(o):t.getContext('2d').clearRect(0,0,t.width,t.height)})"
 }
-
 
 #### 组件设计最佳实践
 
