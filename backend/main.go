@@ -111,8 +111,6 @@ func main() {
 	router := gin.Default()
 
 	router.Use(
-		securityHeaders(),
-		requestLimiter(),
 		recoveryMiddleware(),
 	)
 
@@ -130,32 +128,6 @@ func main() {
 	log.Fatal(router.Run(":" + port))
 }
 
-func securityHeaders() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Header("X-Content-Type-Options", "nosniff")
-		c.Header("X-Frame-Options", "DENY")
-		c.Header("Content-Security-Policy", 
-			"default-src 'self'; "+
-			"script-src 'self' https: 'unsafe-inline'; "+
-			"style-src 'self' https: 'unsafe-inline'; "+
-			"img-src 'self' data: https:; "+
-			"connect-src 'self' https://api.deepseek.com;")
-		c.Header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
-
-		if c.Request.Method == http.MethodOptions {
-			c.AbortWithStatus(http.StatusNoContent)
-			return
-		}
-		c.Next()
-	}
-}
-
-func requestLimiter() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, MAX_REQUEST_SIZE)
-		c.Next()
-	}
-}
 
 func recoveryMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
