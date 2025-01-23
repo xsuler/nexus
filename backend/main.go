@@ -118,7 +118,9 @@ func main() {
 
 	router.POST("/api/generate", handleGeneration)
 	router.GET("/proxy", handleProxy)
-	router.Static("/", "./frontend")
+	router.GET("/", func(c *gin.Context) {
+		c.File("./frontend/index.html")
+	})
 
 	port := os.Getenv("PORT")
 	if port == "" {
