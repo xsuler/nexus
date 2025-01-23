@@ -18,79 +18,114 @@ import (
 )
 
 const (
-	PROMPT_TEMPLATE = `用户希望实现app，需要渲染一个app页面，请你输出这个app页面的渲染json
+	PROMPT_TEMPLATE = `为了帮助您更好地指导大型语言模型（LLM）生成更完善、专业且复杂的应用程序页面渲染 JSON，以下是对您原始提示的重新描述和扩展。此扩展旨在提供更详细的指导，确保生成的组件丰富多样，并符合所有指定的规则和最佳实践。
 
-### JSON 任务配置极简指南
+---
+
+### 应用页面渲染 JSON 生成指南
+
+用户希望开发一个功能丰富的应用程序，需渲染多个不同功能的页面组件。请根据以下指导，输出完整且结构化的应用页面渲染 JSON。生成的 JSON 应涵盖各个组件的详细描述、依赖项、输入输出处理逻辑，以及动态更新机制，以确保应用程序的交互性和响应性。
+
+#### 主要规则与要求
+
+1. **代码格式**：
+    - JSON 字符串中的代码段必须保持单行格式，避免使用换行符。
+    - 禁止使用双引号，仅允许使用单引号，以确保 JSON 结构的正确性。
+    - 在 render 和 action 的代码中，所有逻辑必须用分号隔开，不得包含任何控制字符。
+
+2. **依赖管理**：
+    - 优先选择来自 jsDelivr 的稳定依赖库，确保组件的可靠性和加载速度。
+    - 禁止使用以下依赖库：marked.min.js、jspdf.umd.min.js、three.js，以避免潜在的兼容性和安全性问题。
+    - 若需引用外部资源，请通过代理 URL 进行嵌入，示例如下：
+
+      <iframe 
+          src="/proxy?url=${data.url}"
+          loading="lazy"
+          allow="accelerometer; camera; geolocation; microphone; payment; usb"
+      ></iframe>
+
+
+3. **用户交互**：
+    - 尽量减少用户输入需求，避免渲染输入组件，提升用户体验和界面简洁度。
+    - 对于需要用户交互的功能，应采用自动化或智能化的处理方式。
+
+4. **动态更新**：
+    - 对于能够动态更新的数据和显示内容，必须采用实时更新机制，确保界面内容的及时性和准确性。
+    - 使用高效的状态管理和更新方法，避免长时间延迟，确保用户操作的流畅性。
+
+5. **安全与性能**：
+    - 所有外部资源的引用均需经过严格的验证和代理，以防止安全漏洞。
+    - 组件应优化性能，避免不必要的资源消耗和加载延迟。
+
+#### 生成步骤
+
+1. **扩展与完善描述**：
+    - 对用户需求进行详细扩展，填写到 expand_description 字段中。
+    - 每个组件的描述应超过 500 字，充分发挥想象力，结合各种可视化工具，丰富组件的展示内容。
+    - 描述应涵盖组件的功能、外观、交互方式、响应机制及其在应用中的具体应用场景。
+
+2. **输出 JSON 规范**：
+    - 根据扩展后的描述，生成符合规范的 JSON 配置。
+    - 每个组件的 JSON 配置应包含以下字段：
+        - name：组件名称。
+        - expand_description：扩展后的详细描述。
+        - dependencies：所需的外部依赖库，优先使用 jsDelivr 链接。
+        - input：输入处理逻辑，若不需要用户输入则忽略此字段。
+        - output：输出渲染逻辑，详细描述如何展示数据。
+        - action：组件的行为逻辑，处理数据输入与状态更新。
+
+3. **应用动态更新手段**：
+    - 对于能够动态变化的数据，应用实时更新机制。
+    - 示例包括但不限于定时刷新、事件驱动更新、数据绑定等方法，以确保组件内容的时效性和交互性。
+
+#### 示例 JSON 配置
+
+以下是两个组件的示例配置，以供参考：
+
 
 {
     "name": "实时时钟",
-    "expand_description": "一个实时输出时间的html组件",
+    "expand_description": "该组件为用户提供一个实时显示当前时间的功能，采用数字时钟形式，支持多种时间格式（如12小时制和24小时制），并可自定义字体样式和颜色。通过高效的定时器机制，确保时间的精确性和更新的流畅性，适用于各种需要显示当前时间的应用场景，如仪表盘、个人助手等。",
+    "dependencies": [],
+    "output": {
+        "render": "(container, data) => { container.innerHTML = <div class='clock'>${data}</div>; }"
+    },
     "action": "(input, update) => { setInterval(() => update(new Date().toLocaleTimeString()), 1000); }"
 }
 
 
+
 {
     "name": "二维码生成器",
-    "expand_description": "一个专业的二维码生成器,用户输入文本，输出对应的二维码",
+    "expand_description": "该组件为用户提供一个专业的二维码生成工具，用户可以输入任意文本内容，组件将生成对应的二维码图像。支持多种二维码样式和尺寸选择，并具备高容错能力，确保二维码在不同场景下的可扫描性。组件内嵌高性能的二维码库，通过优化的渲染算法，实现快速生成和展示二维码，适用于商业名片、网址分享、活动推广等多种应用场景。",
     "dependencies": [
         "https://cdn.jsdelivr.net/npm/qrcode-svg@1.1.0/lib/qrcode.min.js"
     ],
     "input": {
-        "render": "(container, update) => { 
-            const input = document.createElement('input'); 
-            input.className = 'input-field'; 
-            input.placeholder = '输入内容'; 
-            container.appendChild(input); 
-        }"
+        "render": "(container, update) => { const input = document.createElement('input'); input.className = 'input-field'; input.placeholder = '输入内容'; container.appendChild(input); input.addEventListener('input', (e) => update(e.target.value)); }"
     },
     "output": {
-        "render": "(container, data) => {
-            container.innerHTML = '';
-            if (!data) {
-                const err = document.createElement('div');
-                err.className = 'error';
-                err.textContent = '内容为空';
-                container.appendChild(err);
-                return;
-            }
-            try {
-                const qr = new QRCode({ content: data, width: 128, height: 128 });
-                container.innerHTML = qr.svg();
-            } catch(e) {
-                const err = document.createElement('div');
-                err.className = 'error';
-                err.textContent = '生成失败: ' + e.message;
-                container.appendChild(err);
-            }
-        }"
+        "render": "(container, data) => { container.innerHTML = ''; if (!data) { const err = document.createElement('div'); err.className = 'error'; err.textContent = '内容为空'; container.appendChild(err); return; } try { const qr = new QRCode({ content: data, width: 128, height: 128 }); container.innerHTML = qr.svg(); } catch(e) { const err = document.createElement('div'); err.className = 'error'; err.textContent = '生成失败: ' + e.message; container.appendChild(err); } }"
     },
-    "action": "(input, update) => { 
-        if (typeof input !== 'string' || !input.trim()) return; 
-        update(input.trim()); 
-    }"
+    "action": "(input, update) => { if (typeof input !== 'string' || !input.trim()) return; update(input.trim()); }"
 }
 
-你生成的render或者action中如果要嵌入外部来源url，使用proxy，例如
 
-<iframe 
-                src="/proxy?url=${encodeURIComponent(data.url)}"
-                loading="lazy"
-                allow="accelerometer; camera; geolocation; microphone; payment; usb"
-            ></iframe>
-	    
-请严格遵循以下规则：
-1. JSON字符串中的代码保持单行格式
-2. 优先使用jsDelivr的稳定依赖
-3. 禁止使用双引号，仅使用单引号
-4. render和action代码中不得包含换行符，都是用分号，不能有任何control character
-5. 调用update一定要及时，不要过太长时间
-6. 禁用以下依赖：marked.min.js, jspdf.umd.min.js, three.js
-7. 尽可能不要让用户输入什么，即尽可能不渲染input组件
+#### 组件设计最佳实践
 
- 你的工作将follow如下步骤
- 1. 扩充用户的输入，完善的重新描述它，填写到extend_description 中，尽可能详细扩充，超过500字，发挥你的想象力，尽可能利用各种可视化工具，丰富生成的组件展示内容
- 2. 对完善后的重新描述输出json规范
- 3. 对于能动态更新的，尽可能应用动态更新手段，动态渲染组件
+- **模块化设计**：每个组件应设计为独立的模块，具备单一职责，便于维护和复用。
+- **可扩展性**：组件应支持扩展，以适应不同的应用需求，允许通过参数或配置进行定制化。
+- **响应式布局**：确保组件在不同设备和屏幕尺寸下均能良好展示，采用灵活的布局和样式。
+- **错误处理**：在组件逻辑中加入充分的错误处理机制，确保在异常情况下能够提供友好的用户反馈。
+- **性能优化**：优化组件的渲染和更新逻辑，减少不必要的资源消耗和性能开销，提升整体应用的响应速度。
+
+#### 最终输出
+
+请根据上述指导，生成完整的应用页面渲染 JSON。每个组件的配置应详细描述其功能、依赖项、输入输出逻辑及动态更新机制，确保整个应用具备高度的专业性和复杂性。
+
+---
+
+通过上述详细的指南和示例，LLM 能够更准确地理解和生成符合需求的应用页面渲染 JSON，提升整体应用的质量和用户体验。
  
  `
 
