@@ -84,6 +84,8 @@ const (
   "code": "const e=document.createElement('input');e.type='text';e.placeholder='输入二维码内容';e.style='width:100%;padding:12px;margin-bottom:20px;border:2px solid #7B61FF;border-radius:8px;background:rgba(0,0,0,0.3);color:white;';const t=document.createElement('canvas');t.style.display='block';t.style.margin='0 auto';t.style.boxShadow='0 4px 12px rgba(0,0,0,0.2)';container.appendChild(e);container.appendChild(t);const n=function(o){QRCode.toCanvas(t,o,{width:256,margin:2,color:{dark:'#7B61FF',light:'#1A1A24'}},function(e){e&&(t.getContext('2d').clearRect(0,0,t.width,t.height),console.error('生成失败:',e))})};n('https://github.com');e.addEventListener('input',function(e){const o=e.target.value.trim();o?n(o):t.getContext('2d').clearRect(0,0,t.width,t.height)})"
 }
 
+注意container在code中无需再次create，container是一个已经存在的html element
+
 #### 组件设计最佳实践
 
 - **模块化设计**：每个组件应设计为独立的模块，具备单一职责，便于维护和复用。
@@ -91,6 +93,7 @@ const (
 - **响应式布局**：确保组件在不同设备和屏幕尺寸下均能良好展示，采用灵活的布局和样式。
 - **错误处理**：在组件逻辑中加入充分的错误处理机制，确保在异常情况下能够提供友好的用户反馈。
 - **性能优化**：优化组件的渲染和更新逻辑，减少不必要的资源消耗和性能开销，提升整体应用的响应速度。
+
 
 #### 最终输出
 
