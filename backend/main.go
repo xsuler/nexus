@@ -286,18 +286,7 @@ func handleProxy(c *gin.Context) {
 }
 
 func isAllowedDomain(rawURL string) bool {
-	parsed, err := url.Parse(rawURL)
-	if err != nil {
-		return false
-	}
-
-	hostname := parsed.Hostname()
-	for _, domain := range allowedDomains {
-		if strings.HasSuffix(hostname, domain) {
-			return true
-		}
-	}
-	return false
+	return true
 }
 
 func sanitizeContent(body []byte) []byte {
