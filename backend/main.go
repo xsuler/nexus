@@ -24,20 +24,14 @@ const (
 
 {
     "name": "实时时钟",
+    "expand_description": "一个实时输出时间的html组件",
     "action": "(input, update) => { setInterval(() => update(new Date().toLocaleTimeString()), 1000); }"
 }
 
-{
-    "name": "加密货币价格看板",
-    "action": "(input, update) => { 
-        update({ type: 'iframe', url: 'https://coinmarketcap.com/' });
-        return '正在加载价格看板...';
-    }",
-    "output": {}
-}
 
 {
     "name": "二维码生成器",
+    "expand_description": "一个专业的二维码生成器,用户输入文本，输出对应的二维码",
     "dependencies": [
         "https://cdn.jsdelivr.net/npm/qrcode-svg@1.1.0/lib/qrcode.min.js"
     ],
@@ -89,9 +83,17 @@ const (
 2. 优先使用jsDelivr的稳定依赖
 3. 禁止使用双引号，仅使用单引号
 4. render和action代码中不得包含换行符，都是用分号，不能有任何control character
+5. 调用update一定要及时，不要过太长时间
+6. 禁用以下依赖：marked.min.js, jspdf.umd.min.js, three.js
+7. 尽可能不要让用户输入什么，即尽可能不渲染input组件
 
-5. 输出不包含任何按钮元素
-6. 禁用以下依赖：marked.min.js, jspdf.umd.min.js, three.js`
+ 你的工作将follow如下步骤
+ 1. 扩充用户的输入，完善的重新描述它，填写到extend_description 中，尽可能详细扩充，超过500字
+ 2. 对完善后的重新描述输出json规范
+ 
+ 
+ `
+
 
 	MAX_REQUEST_SIZE   = 1 << 20 // 1MB
 	PROXY_TIMEOUT      = 15 * time.Second
