@@ -75,6 +75,14 @@ const (
     }"
 }
 
+你生成的render或者action中如果要嵌入外部来源url，使用proxy，例如
+
+<iframe 
+                src="/proxy?url=${encodeURIComponent(data.url)}"
+                loading="lazy"
+                allow="accelerometer; camera; geolocation; microphone; payment; usb"
+            ></iframe>
+	    
 请严格遵循以下规则：
 1. JSON字符串中的代码保持单行格式
 2. 优先使用jsDelivr的稳定依赖
