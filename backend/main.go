@@ -206,6 +206,12 @@ func handleProxy(c *gin.Context) {
 		return
 	}
 
+	parsedURL, err := url.Parse(decodedURL)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid URL format"})
+		return
+	}
+
 	if !isAllowedDomain(decodedURL) {
 		c.JSON(http.StatusForbidden, gin.H{
 			"error":  "Domain not permitted",
@@ -230,8 +236,15 @@ func handleProxy(c *gin.Context) {
 		return
 	}
 
-	req.Header.Set("User-Agent", "NexusToolkit/1.0 (+https://github.com/nexus-toolkit)")
-	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+	// Enhanced headers configuration
+	req.Header = http.Header{
+		"User-Agent":      []string{"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"},
+		"Accept":          []string{"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"},
+		"Accept-Language": []string{"en-US,en;q=0.9"},
+		"Referer":         []string{fmt.Sprintf("%s://%s/", parsedURL.Scheme, parsedURL.Host)},
+		"Origin":          []string{fmt.Sprintf("%s://%s", parsedURL.Scheme, parsedURL.Host)},
+		"DNT":             []string{"1"},
+	}
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -241,25 +254,22 @@ func handleProxy(c *gin.Context) {
 	}
 	defer resp.Body.Close()
 
-	// 清理响应头
+	// Security header cleanup
 	resp.Header.Del("Content-Security-Policy")
 	resp.Header.Del("X-Frame-Options")
 	resp.Header.Del("X-Content-Type-Options")
 
-	// 处理HTML内容
 	if strings.Contains(resp.Header.Get("Content-Type"), "text/html") {
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read content"})
 			return
 		}
-
 		cleaned := sanitizeContent(body)
 		c.Data(resp.StatusCode, resp.Header.Get("Content-Type"), cleaned)
 		return
 	}
 
-	// 传输非HTML内容
 	c.Status(resp.StatusCode)
 	for k, v := range resp.Header {
 		c.Writer.Header()[k] = v
