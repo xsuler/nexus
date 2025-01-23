@@ -79,7 +79,8 @@ const (
 1. JSON字符串中的代码保持单行格式
 2. 优先使用jsDelivr的稳定依赖
 3. 禁止使用双引号，仅使用单引号
-4. 代码中不得包含换行符
+4. render和action代码中不得包含换行符，都是用分号，不能有任何control character
+
 5. 输出不包含任何按钮元素
 6. 禁用以下依赖：marked.min.js, jspdf.umd.min.js, three.js`
 
