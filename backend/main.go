@@ -78,34 +78,23 @@ const (
 
 #### 示例 JSON 配置
 
-以下是两个组件的示例配置，以供参考：
+以下是1个组件的示例配置，以供参考：
 
 
 {
     "name": "实时时钟",
     "expand_description": "该组件为用户提供一个实时显示当前时间的功能，采用数字时钟形式，支持多种时间格式（如12小时制和24小时制），并可自定义字体样式和颜色。通过高效的定时器机制，确保时间的精确性和更新的流畅性，适用于各种需要显示当前时间的应用场景，如仪表盘、个人助手等。",
-    "dependencies": [],
-    "output": {
-        "render": "(container, data) => { container.innerHTML = <div class='clock'>${data}</div>; }"
-    },
-    "action": "(input, update) => { setInterval(() => update(new Date().toLocaleTimeString()), 1000); }"
-}
-
-
-
-{
-    "name": "二维码生成器",
-    "expand_description": "该组件为用户提供一个专业的二维码生成工具，用户可以输入任意文本内容，组件将生成对应的二维码图像。支持多种二维码样式和尺寸选择，并具备高容错能力，确保二维码在不同场景下的可扫描性。组件内嵌高性能的二维码库，通过优化的渲染算法，实现快速生成和展示二维码，适用于商业名片、网址分享、活动推广等多种应用场景。",
     "dependencies": [
-        "https://cdn.jsdelivr.net/npm/qrcode-svg@1.1.0/lib/qrcode.min.js"
+            "https://cdn.jsdelivr.net/npm/qrcode-svg@1.1.0/lib/qrcode.min.js"
     ],
     "input": {
         "render": "(container, update) => { const input = document.createElement('input'); input.className = 'input-field'; input.placeholder = '输入内容'; container.appendChild(input); input.addEventListener('input', (e) => update(e.target.value)); }"
     },
+
     "output": {
-        "render": "(container, data) => { container.innerHTML = ''; if (!data) { const err = document.createElement('div'); err.className = 'error'; err.textContent = '内容为空'; container.appendChild(err); return; } try { const qr = new QRCode({ content: data, width: 128, height: 128 }); container.innerHTML = qr.svg(); } catch(e) { const err = document.createElement('div'); err.className = 'error'; err.textContent = '生成失败: ' + e.message; container.appendChild(err); } }"
+        "render": "(container, data) => { container.innerHTML = <div class='clock'>${data}</div>; }"
     },
-    "action": "(input, update) => { if (typeof input !== 'string' || !input.trim()) return; update(input.trim()); }"
+    "action": "(input, update) => { setInterval(() => update(new Date().toLocaleTimeString()), 1000); }"
 }
 
 
