@@ -2,605 +2,245 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="
-    default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;
-    script-src * 'unsafe-inline' 'unsafe-eval' data: blob:;
-    style-src * 'unsafe-inline' data:;
-    img-src * data: blob:;
-    font-src * data:;
-    connect-src *;
-    frame-src *;
-    object-src *;
-    media-src *;
-">
-    <title>Nexus Toolkit</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;
+        script-src * 'unsafe-inline' 'unsafe-eval' data: blob:;
+        style-src * 'unsafe-inline' data:;
+        img-src * data: blob:;
+        font-src * data:;
+        connect-src *;
+        frame-src *;
+        object-src *;
+        media-src *;
+    ">
+    <title>Nexus Studio</title>
     <style>
         :root {
-            --primary-color: #7B61FF;
-            --neon-effect: 0 0 15px #7B61FF;
-            --background: linear-gradient(45deg, #1A1A1A 0%, #2D2D2D 100%);
-            --card-bg: rgba(30, 30, 30, 0.9);
-            --text-primary: #E0E0E0;
-            --error-color: #FF4A4A;
-            --success-color: #00FF88;
-            --loading-color: #7B61FF;
+            --primary: #7B61FF;
+            --background: #0F0F13;
+            --surface: #1A1A24;
+            --text: rgba(255,255,255,0.9);
         }
 
         body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             margin: 0;
             padding: 2rem;
             background: var(--background);
-            color: var(--text-primary);
+            color: var(--text);
             min-height: 100vh;
         }
 
-        .cyberpunk-heading {
+        .header {
             text-align: center;
-            font-size: 2.5rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 2rem;
-            position: relative;
-            display: inline-block;
-            width: 100%;
+            margin: 3rem 0;
+            font-size: 2.2rem;
+            font-weight: 600;
+            color: var(--primary);
         }
 
-        .cyberpunk-heading::after {
-            content: "";
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 200px;
-            height: 3px;
-            background: var(--primary-color);
-            box-shadow: var(--neon-effect);
-        }
-
-        .config-section {
-            background: var(--card-bg);
-            border-radius: 8px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            border: 1px solid rgba(123, 97, 255, 0.3);
-            backdrop-filter: blur(10px);
-            box-shadow: var(--neon-effect);
+        .creator-panel {
             max-width: 800px;
             margin: 2rem auto;
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 2rem;
         }
 
         textarea {
-            width: 90%;
-            display: block;
-            margin: 1rem auto;
+            width: 100%;
             height: 150px;
-            padding: 1rem;
-            background: rgba(40, 40, 40, 0.8);
-            border: 2px solid #7B61FF;
-            border-radius: 6px;
-            color: #FFF;
+            padding: 1.2rem;
+            background: rgba(0,0,0,0.3);
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            color: white;
             font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        textarea:focus {
-            outline: none;
-            box-shadow: 0 0 10px var(--primary-color);
+            margin: 1rem 0;
+            resize: vertical;
         }
 
         .btn {
-            padding: 0.8rem 1.5rem;
+            padding: 0.8rem 1.8rem;
+            background: var(--primary);
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
+            color: white;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-primary {
-            background: var(--primary-color);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            box-shadow: var(--neon-effect);
-            transform: translateY(-2px);
-        }
-
-        .btn-danger {
-            background: var(--error-color);
-            color: white;
-        }
-
-        .task-container {
-            display: grid;
-            gap: 2rem;
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .task-card {
-            background: var(--card-bg);
-            border-radius: 8px;
-            padding: 2rem;
-            border: 1px solid rgba(123, 97, 255, 0.3);
+            transition: opacity 0.2s;
             position: relative;
         }
 
-        .task-card::before {
+        .btn.loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .btn.loading::after {
             content: "";
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            border-radius: 8px;
-            pointer-events: none;
-            box-shadow: var(--neon-effect);
-            opacity: 0.3;
-        }
-
-        .processing {
-            padding: 1rem;
-            background: rgba(0, 255, 136, 0.1);
-            border: 1px solid var(--success-color);
-            border-radius: 6px;
-            color: var(--success-color);
-            text-align: center;
-        }
-
-        .error {
-            padding: 1rem;
-            background: rgba(255, 74, 74, 0.1);
-            border: 1px solid var(--error-color);
-            border-radius: 6px;
-            color: var(--error-color);
-            margin: 1rem 0;
-        }
-
-        .loading-spinner {
-            animation: spin 1s linear infinite;
-            margin-left: 0.5rem;
-        }
-
-        .cyber-grid {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                linear-gradient(rgba(123, 97, 255, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(123, 97, 255, 0.1) 1px, transparent 1px);
-            background-size: 20px 20px;
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        .input-container {
-            border: 2px solid var(--primary-color);
-            border-radius: 6px;
-            padding: 1rem;
-            margin: 1rem 0;
-            background: rgba(0, 0, 0, 0.3);
-        }
-
-        .output-container {
-            margin-top: 1rem;
-            padding: 1rem;
-            border: 2px solid var(--primary-color);
-            border-radius: 6px;
-            background: rgba(0, 0, 0, 0.2);
-            position: relative;
-        }
-
-        .iframe-container {
-            position: relative;
-            min-height: 500px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        .loading-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
-        }
-
-        .error-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            padding: 2rem;
-            background: rgba(30, 30, 30, 0.95);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-        }
-
-        .error-overlay ul {
-            text-align: left;
-            margin: 1rem 0;
-        }
-
-        .external-link {
-            color: var(--primary-color);
-            text-decoration: none;
-            border-bottom: 1px dashed;
+            right: 1rem;
+            top: 50%;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid #fff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            transform: translateY(-50%);
         }
 
         @keyframes spin {
-            100% { transform: rotate(360deg); }
+            to { transform: translateY(-50%) rotate(360deg); }
         }
 
-        .toggle-output {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: var(--card-bg);
-            border: 1px solid var(--primary-color);
-            border-radius: 4px;
-            padding: 4px 8px;
-            cursor: pointer;
-            z-index: 20;
+        .task-container {
+            max-width: 1000px;
+            margin: 2rem auto;
+        }
+
+        .task-card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1.5rem 0;
         }
     </style>
 </head>
 <body>
-    <div class="cyber-grid"></div>
-    <h1 class="cyberpunk-heading">NEXUS TOOLKIT</h1>
+    <h1 class="header">NEXUS STUDIO</h1>
 
-    <div class="config-section">
-        <h2>应用描述</h2>
-        <textarea id="textInput" placeholder="示例：创建一个显示实时加密货币价格的仪表板"></textarea>
+    <div class="creator-panel">
+        <textarea 
+            id="promptInput" 
+            placeholder="输入你的创意描述..."
+        ></textarea>
         <div style="text-align: center;">
-            <button class="btn btn-primary" onclick="generateConfig()" id="generateBtn">
-                <span class="btn-text">生成应用</span>
-                <span class="loading-spinner" style="display:none;"><i class="fas fa-spinner"></i></span>
-            </button>
+            <button class="btn" onclick="handleGenerate()" id="generateBtn">生成组件</button>
         </div>
     </div>
 
-    <div class="task-container" id="taskContainer"></div>
+    <div class="task-container" id="componentContainer"></div>
 
 <script>
-const appState = {
-    task: null,
-    execution: null,
-    dependencies: new Map(),
-    input: null,
-    iframeStates: new Map()
+const state = {
+    currentComponent: null,
+    loadedDeps: new Set()
 };
 
-async function generateConfig() {
-    const generateBtn = document.getElementById('generateBtn');
-    const btnText = generateBtn.querySelector('.btn-text');
-    const spinner = generateBtn.querySelector('.loading-spinner');
+async function handleGenerate() {
+    const btn = document.getElementById('generateBtn');
+    const prompt = document.getElementById('promptInput').value.trim();
     
+    if (!prompt) {
+        showError('请输入创意描述');
+        return;
+    }
+
     try {
-        btnText.textContent = '生成中...';
-        spinner.style.display = 'inline-block';
-        generateBtn.disabled = true;
+        btn.classList.add('loading');
+        const config = await fetchComponentConfig(prompt);
+        await renderComponent(config);
+    } catch (error) {
+        showError(error.message);
+    } finally {
+        btn.classList.remove('loading');
+    }
+}
 
-        const userInput = document.getElementById('textInput').value;
-        if (!userInput.trim()) throw new Error('请输入任务描述');
-
+async function fetchComponentConfig(prompt) {
+    try {
         const response = await fetch('/api/generate', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({prompt: userInput})
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ prompt })
         });
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || `请求失败: ${response.status}`);
+            const error = await response.json();
+            throw new Error(error.message || '请求失败');
         }
-        
+
         const data = await response.json();
-        if (!data?.choices?.[0]?.message?.content) throw new Error('API返回格式异常');
-        
-        const configJson = extractJson(data.choices[0].message.content);
-        renderTask(configJson);
-    } catch(error) {
-        showError(`生成失败: ${error.message}`);
-    } finally {
-        btnText.textContent = '生成应用';
-        spinner.style.display = 'none';
-        generateBtn.disabled = false;
-    }
-}
-
-function extractJson(content) {
-    const jsonStart = content.indexOf('{');
-    const jsonEnd = content.lastIndexOf('}') + 1;
-    const jsonString = content.slice(jsonStart, jsonEnd);
-
-    try {
-        return JSON.parse(jsonString);
-    } catch(e) {
-        console.error('解析失败的JSON内容:', jsonString);
-        throw new Error('JSON解析失败: ' + e.message);
-    }
-}
-
-function renderTask(config) {
-    try {
-        validateTaskConfig(config);
-        appState.task = config;
-        
-        const container = document.getElementById('taskContainer');
-        container.innerHTML = `
-            <div class="task-card">
-                <h3>${config.name}</h3>
-                ${config.input ? `<div class="input-container" id="taskInput"></div>` : ''}
-                <div class="task-controls" style="margin: 1rem 0;">
-                    <button class="btn btn-primary" onclick="executeTask()">执行</button>
-                    <button class="btn btn-danger" onclick="abortTask()">终止</button>
-                </div>
-                <div class="output-container" id="taskOutput"></div>
-            </div>
-        `;
-
-        if (config.input) {
-            ComponentRenderer.renderInput(
-                document.getElementById('taskInput'),
-                config.input
-            );
-        }
+        return data;
     } catch (error) {
-        showError(`配置解析错误: ${error.message}`);
+        throw new Error(`API请求失败: ${error.message}`);
     }
-}
 
-function validateTaskConfig(task) {
-    const requiredFields = ['name', 'action'];
-    requiredFields.forEach(field => {
-        if (!task[field]) throw new Error(`缺少必要字段: ${field}`);
-    });
 
+async function renderComponent(config) {
+    // 清理旧组件
+    if (state.currentComponent) {
+        document.head.querySelectorAll('.dynamic-dep').forEach(el => el.remove());
+        state.loadedDeps.clear();
+    }
+
+    // 加载依赖
+    await loadDependencies(config.deps);
+
+    // 创建容器
+    const container = document.getElementById('componentContainer');
+    container.innerHTML = `<div class="task-card" id="componentMount"></div>`;
+
+    // 执行代码
     try {
-        if (typeof eval(task.action) !== 'function') {
-            throw new Error('action 必须是有效的函数');
-        }
-    } catch(e) {
-        throw new Error('action 代码解析失败: ' + e.message);
-    }
-
-    // 安全验证
-    if (task.action.includes('iframe')) {
-        const allowedHosts = ['coinmarketcap.com', 'coingecko.com'];
-        const urlMatch = task.action.match(/url:\s*["'](https?:\/\/[^"']+)["']/);
-        if (urlMatch && !allowedHosts.some(h => urlMatch[1].includes(h))) {
-            throw new Error('不允许的iframe域名');
-        }
+        const mountNode = document.getElementById('componentMount');
+        const component = eval(config.code)(mountNode);
+        state.currentComponent = component;
+    } catch (error) {
+        container.innerHTML = `<div class="error">组件初始化失败: ${error.message}</div>`;
     }
 }
 
-const ComponentRenderer = {
-    renderInput(container, config) {
-        try {
-            container.innerHTML = '';
-            if (!config?.render) return;
+async function loadDependencies(deps) {
+    const loadResource = (url) => {
+        if (state.loadedDeps.has(url)) return;
 
-            const update = (value) => appState.input = value;
-            const renderFn = eval(config.render);
-            renderFn(container, update);
-            this.autoBindInputs(container, update);
+        return new Promise((resolve, reject) => {
+            const isCSS = url.endsWith('.css');
+            const element = isCSS 
+                ? Object.assign(document.createElement('link'), { 
+                    rel: 'stylesheet', 
+                    href: url 
+                  })
+                : Object.assign(document.createElement('script'), { 
+                    src: url 
+                  });
 
-        } catch(e) {
-            container.innerHTML = `<div class="error">输入渲染失败: ${e.message}</div>`;
-        }
-    },
-
-    autoBindInputs(container, update) {
-        const elements = container.querySelectorAll('input, select, textarea');
-        elements.forEach(el => {
-            const eventType = el.tagName === 'INPUT' && el.type === 'checkbox' ? 'change' : 'input';
-            el.addEventListener(eventType, () => {
-                update(this.getValueFromElement(el));
-            });
-            update(this.getValueFromElement(el));
+            element.className = 'dynamic-dep';
+            element.onload = () => {
+                state.loadedDeps.add(url);
+                resolve();
+            };
+            element.onerror = () => reject(new Error(`加载失败: ${url}`));
+            document.head.appendChild(element);
         });
-    },
+    };
 
-    getValueFromElement(el) {
-        if (el.type === 'checkbox') return el.checked;
-        if (el.type === 'file') return el.files[0];
-        return el.value;
-    },
-
-    renderOutput(container, data, config) {
-        try {
-            container.innerHTML = '';
-            
-            if (config?.render) {
-                const renderFn = eval(config.render);
-                return renderFn(container, data);
-            }
-
-            if (data?.type === 'iframe') {
-                return this.renderIframe(container, data);
-            }
-
-            const pre = document.createElement('pre');
-            pre.textContent = JSON.stringify(data, null, 2);
-            container.appendChild(pre);
-        } catch(e) {
-            container.innerHTML = `<div class="error">渲染失败: ${e.message}</div>`;
-        }
-    },
-
-    renderIframe(container, data) {
-        const stateKey = data.url;
-        const existingState = appState.iframeStates.get(stateKey);
-        
-        const wrapper = document.createElement('div');
-        wrapper.className = 'iframe-container';
-        wrapper.innerHTML = `
-            ${existingState ? '' : `
-            <div class="loading-overlay">
-                <i class="fas fa-spinner loading-spinner"></i>
-            </div>
-            <div class="error-overlay" style="display: none;">
-                <h4>内容加载失败</h4>
-                <p>可能原因：</p>
-                <ul>
-                    <li>目标网站禁止嵌入</li>
-                    <li>网络连接问题</li>
-                </ul>
-                <button class="btn btn-primary" onclick="window.open('${data.url}', '_blank')">
-                    在新窗口打开
-                </button>
-            </div>
-            `}
-            <iframe 
-                src="/proxy?url=${encodeURIComponent(data.url)}"
-                loading="lazy"
-                allow="accelerometer; camera; geolocation; microphone; payment; usb"
-            ></iframe>
-        `;
-
-        const iframe = wrapper.querySelector('iframe');
-        const loading = wrapper.querySelector('.loading-overlay');
-        const error = wrapper.querySelector('.error-overlay');
-
-        if (!existingState) {
-            iframe.onload = () => {
-                loading.style.display = 'none';
-                error.style.display = 'none';
-                appState.iframeStates.set(stateKey, true);
-            };
-
-            iframe.onerror = () => {
-                loading.style.display = 'none';
-                error.style.display = 'flex';
-            };
-        }
-
-        container.appendChild(wrapper);
-    }
-};
-
-async function executeTask() {
-    const task = appState.task;
-    if (!task) return;
-
-    const outputContainer = document.getElementById('taskOutput');
-    const controller = new AbortController();
-    
-    appState.execution = controller;
-    outputContainer.innerHTML = '<div class="processing"><i class="fas fa-sync-alt fa-spin"></i> 执行中...</div>';
-
-    try {
-        if (task.dependencies) {
-            await Promise.all(task.dependencies.map(url => {
-                if (!appState.dependencies.has(url)) {
-                    return new Promise((resolve, reject) => {
-                        const script = document.createElement('script');
-                        script.src = url;
-                        script.onload = () => {
-                            appState.dependencies.set(url, true);
-                            resolve();
-                        };
-                        script.onerror = (err) => reject(new Error(`加载依赖失败: ${url}`));
-                        document.head.appendChild(script);
-                    });
-                }
-                return Promise.resolve();
-            }));
-        }
-
-        let latestData = null;
-        const update = (data) => {
-            if (typeof data === 'object' && data?.type === 'iframe') {
-                validateIframeUrl(data.url);
-            }
-            latestData = data;
-            ComponentRenderer.renderOutput(outputContainer, data, task.output);
-        };
-
-        const actionFn = eval(task.action);
-        const result = actionFn(appState.input, update, controller.signal);
-
-        if (result instanceof Promise) await result;
-        if (latestData === null && result !== undefined) {
-            ComponentRenderer.renderOutput(outputContainer, result, task.output);
-        }
-
-    } catch (error) {
-        ComponentRenderer.renderOutput(outputContainer, 
-            { error: error.message },
-            { render: "(c, d) => c.innerHTML = `<div class='error'>${d.error}</div>`" }
-        );
-    } finally {
-        appState.execution = null;
-    }
-}
-
-function validateIframeUrl(url) {
-
-}
-
-function abortTask() {
-    if (appState.execution) {
-        appState.execution.abort();
-        appState.execution = null;
-        const outputContainer = document.getElementById('taskOutput');
-        outputContainer.innerHTML = '<div class="error">任务已终止</div>';
-    }
+    await Promise.all(deps.map(loadResource));
 }
 
 function showError(message) {
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'error';
-    errorDiv.innerHTML = `
-        <i class="fas fa-exclamation-triangle"></i>
-        <div class="error-content">
-            <h4>系统告警</h4>
-            <p>${message}</p>
-            <button class="btn btn-primary" onclick="this.parentElement.parentElement.remove()">
-                确认
-            </button>
-        </div>
+    const error = document.createElement('div');
+    error.style = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 2rem;
+        background: #FF4A4A;
+        color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        font-size: 0.9rem;
+        max-width: 400px;
     `;
-    
-    const container = document.getElementById('taskContainer');
-    container.prepend(errorDiv);
-    
-    setTimeout(() => {
-        errorDiv.style.opacity = '0';
-        setTimeout(() => errorDiv.remove(), 500);
-    }, 5000);
+    error.textContent = message;
+    document.body.appendChild(error);
+
+    setTimeout(() => error.remove(), 5000);
 }
-
-document.getElementById('textInput').addEventListener('input', function(e) {
-    if (e.target.value.trim().length > 500) {
-        showError('描述内容过长（最大500字符）');
-    }
-});
-
-// 初始化示例
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('textInput').value = '创建一个加密货币实时价格看板';
-});
 </script>
 </body>
 </html>
