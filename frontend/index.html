@@ -164,7 +164,7 @@ async function fetchComponentConfig(prompt) {
         }
 
         const data = await response.json();
-        return validateConfig(data);
+        return validateConfig(JSON.parse(data.choices[0].message.content));
     } catch (error) {
         throw new Error(`API请求失败: ${error.message}`);
     }
