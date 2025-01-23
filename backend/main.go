@@ -85,6 +85,10 @@ const (
 }
 
 注意container在code中无需再次create，container是一个已经存在的html element
+如果你在code中显式定义了container，就会报错：container is already declared
+so remember, i will call your code in following way:
+func = new Funciton("container", reply.code)
+so you should no contain any declaration of container in your response code
 
 #### 组件设计最佳实践
 
